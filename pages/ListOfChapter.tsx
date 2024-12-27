@@ -15,10 +15,6 @@ export const ListChapterView = () => {
     NextToRead
   } = useChapterViewModel();
 
-  React.useEffect(() => {
-    fetchChapters();
-  }, []);
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1a73e8" translucent />
@@ -31,16 +27,16 @@ export const ListChapterView = () => {
 
       {loading ? (
         <ActivityIndicator size="large" color="#009FE3" style={styles.loader} />
-      ) : (
+      ) : chapters && chapters.length > 0 ? (
         <FlatList
           data={chapters}
-          keyExtractor={(item) => item.ChapterID}
+          keyExtractor={(item) => item.ChapterID.toString()}  // Ensure ChapterID is a string or unique identifier
           contentContainerStyle={{ paddingTop: 40 }}
           initialScrollIndex={Math.max(
             0,
             Math.min(
               chapters.length - 1,
-              (CurrentChap ? CurrentChap - 1 : 0) - 8
+              (CurrentChap || 0) - 8  // Fix to handle null or undefined CurrentChap
             )
           )}
           getItemLayout={(data, index) => ({
@@ -74,6 +70,8 @@ export const ListChapterView = () => {
             <Text style={styles.emptyText}>Không có chương nào.</Text>
           }
         />
+      ) : (
+        <Text style={styles.emptyText}>Không có dữ liệu chương.</Text>
       )}
     </SafeAreaView>
   );

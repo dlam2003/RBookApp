@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 export  const useCommentsViewModel = (BookID: string) => {
       
       const [comments, setComments] = useState<any[]>([]);
-      const [loading, setLoading] = useState<boolean>(false);
+      const [loadingComment, setLoading] = useState<boolean>(false);
       const [error, setError] = useState<string | null>(null);
 
       const fetchComments = async () => {
@@ -34,7 +34,7 @@ export  const useCommentsViewModel = (BookID: string) => {
 
       return {
             comments,
-            loading,
+            loadingComment,
             error,
             fetchComments,
             submitComment,

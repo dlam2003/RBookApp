@@ -7,7 +7,7 @@ export interface Chapter {
   content : string
 }
 
-export const AddRecentlyRead = async (BookID: string, userData: string, ChapterNumber: number) => {
+export const AddRecentlyRead = async (BookID: string, userData: string, ChapterNumber: number, sentenceIndex: number) => {
   try {
     // Đường dẫn đến nhánh RecentlyRead trong Firebase
     const chapterPath = `/RecentlyRead/${userData}/${BookID}`;
@@ -15,9 +15,10 @@ export const AddRecentlyRead = async (BookID: string, userData: string, ChapterN
     // Thêm dữ liệu vào Firebase
     await set(ref(database, chapterPath), {
       lastReadChapter: ChapterNumber,
+      lastReadSentenceIndex: sentenceIndex !== undefined ? sentenceIndex : 0,
     });
 
-    console.log("Successfully added RecentlyRead:", { BookID, userData, ChapterNumber });
+    console.log("Successfully added RecentlyRead:", { BookID, userData, ChapterNumber , sentenceIndex});
   } catch (error) {
     console.error("Error adding recently read data: ", error);
   }
@@ -31,6 +32,20 @@ export const getCurrentChap = async (BookID: string, userData: string) : Promise
   else 
     return null;
 }
+
+export const getCurrentindex = async (BookID: string, userData: string): Promise<number> => {
+  const RecentlyPath = `RecentlyRead/${userData}/${BookID}`;
+  const snapshot = await get(ref(database, RecentlyPath));
+
+  if (snapshot.exists()) {
+      // Nếu có dữ liệu, lấy giá trị của lastReadSentenceIndex, nếu không có thì trả về 0
+      const lastReadSentenceIndex = snapshot.val().lastReadSentenceIndex;
+      return lastReadSentenceIndex !== undefined ? lastReadSentenceIndex : 0;
+  } else {
+      // Nếu không có dữ liệu (không tồn tại trường), trả về 0
+      return 0;
+  }
+};
 
 export const getLastestChapterNumber = async (BookID: string) => {
   if (!BookID) {
@@ -75,7 +90,7 @@ export const getChapter = async (BookID: string, userData: string): Promise<stri
       return result.exists() ? result.val() : null;
     } else {
 
-      await AddRecentlyRead(BookID, userData, 1);
+      await AddRecentlyRead(BookID, userData, 1,0);
       
       const chapterPath = `Chapter/${BookID}/Chương-1`;
       const result = await get(ref(database, chapterPath));
@@ -95,8 +110,10 @@ export const getContentFromChapterNumber = async (
   try {
     const chapterPath = `Chapter/${BookID}/Chương-${ChapterNumber}`;
     const result = await get(ref(database, chapterPath));
+    
     const chapterNumberAsNumber = parseInt(ChapterNumber, 10);
-    await AddRecentlyRead(BookID, userData, chapterNumberAsNumber);
+
+    await AddRecentlyRead(BookID, userData, chapterNumberAsNumber,0);
 
     return result.exists() ? result.val() : null;
   } catch (error) {
@@ -118,41 +135,42 @@ export const GetRecentlyListBook = async (userData: string) => {
     const recentlyData = recentlySnapshot.val();
     const bookIDs = Object.keys(recentlyData);
 
-    const result = [];
+    const result = await Promise.all(
+      bookIDs.map(async (BookID) => {
+        const lastReadChapter = recentlyData[BookID]?.lastReadChapter || 0;
 
-    for (const BookID of bookIDs) {
-      const lastReadChapter = recentlyData[BookID]?.lastReadChapter || 0;
+        const bookPath = `book/${BookID}`;
+        const bookSnapshot = await get(ref(database, bookPath));
 
-      const bookPath = `book/${BookID}`;
-      const bookSnapshot = await get(ref(database, bookPath));
+        if (bookSnapshot.exists()) {
+          const bookData = bookSnapshot.val();
+          return {
+            BookID,
+            title: bookData?.title || "Tiêu đề không xác định",
+            latest_chapter_number: bookData?.latest_chapter_number || 0,
+            lastReadChapter,
+            img_link: bookData?.img_link
+          };
+        } else {
+          console.warn(`Không tìm thấy thông tin sách cho BookID: ${BookID}`);
+          return {
+            BookID,
+            title: "Tiêu đề không xác định",
+            latest_chapter_number: 0,
+            lastReadChapter,
+          };
+        }
+      })
+    );
 
-      if (bookSnapshot.exists()) {
-        const bookData = bookSnapshot.val();
-
-        result.push({
-          BookID,
-          title: bookData?.title || "Tiêu đề không xác định",
-          latest_chapter_number: bookData?.latest_chapter_number || 0,
-          lastReadChapter,
-          img_link : bookData?.img_link
-        });
-      } else {
-        console.warn(`Không tìm thấy thông tin sách cho BookID: ${BookID}`);
-        result.push({
-          BookID,
-          title: "Tiêu đề không xác định",
-          latest_chapter_number: 0,
-          lastReadChapter,
-        });
-      }
-    }
-    console.log("Danh sách sách đọc gần đây:", result);
+    console.log("Danh sách sách đọc gần đây:");
     return result;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách sách đọc gần đây: ", error);
     return null;
   }
 };
+
 
 export const DelChapFRecent = async (UserName : string , BookID : string) => {
   const path = `RecentlyRead/${UserName}/${BookID}`

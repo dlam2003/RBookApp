@@ -8,10 +8,9 @@ import { ProfileScreen } from "../pages/profile";
 import { FontAwesome } from '@expo/vector-icons';
 import HomeScreen from "../pages/Home";
 import { BookInfo } from "../pages/BookInfor";
-import { ReadScreen } from "../pages/Read";
 import { ListChapterView } from "../pages/ListOfChapter";
 import { RecentReadsScreen } from "../pages/RecentlyRead";
-import CommentScreen from "../pages/CommentScreen";
+import { ListenScreen } from "../pages/ListenChap";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -23,10 +22,10 @@ const AppNavigation = () => {
         <Stack.Screen name="Auth" component={AuthNavigation} />
         <Stack.Screen name="Inapp" component={InappNavigation} />
         <Stack.Screen name="Read" component={BookInfo} />
-        <Stack.Screen name="ReadChapter" component={ReadScreen} />
+        {/* <Stack.Screen name="ReadChapter" component={ReadScreen} /> */}
+        <Stack.Screen name="ReadChapter" component={ListenScreen} />
         <Stack.Screen name="ShowListChapter" component={RecentReadsScreen} />
         <Stack.Screen name="ListOfChapter" component={ListChapterView} />
-        <Stack.Screen name="CommentScreen" component={CommentScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -42,7 +41,6 @@ const AuthNavigation = () => {
 };
 
 const InappNavigation = ({ route }) => {
-  const userData = route.params?.userData;
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -58,16 +56,9 @@ const InappNavigation = ({ route }) => {
         headerShown: false,
       })}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        initialParams={{ userData }} // Truyền userData vào HomeScreen
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        initialParams={{ userData }}
-      />
+      <Tab.Screen name="Home" component={HomeScreen}/>
+      <Tab.Screen name="Profile" component={ProfileScreen}/>
+      {/* <Tab.Screen name="ads" component={Ads}/> */}
     </Tab.Navigator>
   );
 };

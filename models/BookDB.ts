@@ -31,7 +31,6 @@ export const getBookInfor = async (BookID : number) => {
     const path = `/book/${BookID}`
     const snapshot = await get(ref(database, path));
     if (snapshot.exists()) {
-      console.log("du lieu ve thong tin sach : ", snapshot.val());
       return snapshot.val();
     } else {
       console.log("No data available");

@@ -16,6 +16,10 @@ export const useChapterViewModel = () => {
   const [TitleBook, setTitLeBook] = useState<string>('');
   const [CurrentChap, setCurrentChap] = useState<number | null>(null);
 
+  useEffect(() => {
+    fetchChapters();
+  }, [CurrentChap]);
+
   const fetchChapters = async () => {
     try {
       setLoading(true);
@@ -25,7 +29,7 @@ export const useChapterViewModel = () => {
 
       const currentChapNumber = await getCurrentChap(userData, BookID);
       setCurrentChap(currentChapNumber);
-
+      console.log('currentchap VM',CurrentChap);
       const chapterList = await GetListOfChap(BookID);
       if (chapterList) {
         const chaptersData = chapterList.map((chapter: any, index: number) => ({
@@ -43,7 +47,6 @@ export const useChapterViewModel = () => {
 
   const NextToRead = (chapternumber: string) => {
     setUserData(userData, BookID, chapternumber);
-    console.log('chapter Number : ', chapternumber);
     navigation.navigate('ReadChapter');
   };
 
