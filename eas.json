@@ -1,0 +1,17 @@
+{
+  "cli": {
+    "version": ">=3.7.2"
+  },
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "channel": "development"
+    }
+  }
+}
